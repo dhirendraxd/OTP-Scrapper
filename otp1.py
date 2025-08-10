@@ -14,7 +14,6 @@ from selenium.common.exceptions import (
     WebDriverException,
 )
 
-# Try to import webdriver_manager, fallback to system driver
 try:
     from webdriver_manager.chrome import ChromeDriverManager
 
@@ -36,6 +35,8 @@ class SmartOTPAutomator:
     def __init__(self):
         self.driver = None
         self.mail = None
+        self.EMAIL_USER = EMAIL_USER
+        self.EMAIL_PASS = EMAIL_PASS
 
     def connect_to_existing_browser(self):
         """Connect to an existing Chrome browser with remote debugging"""
@@ -62,15 +63,34 @@ class SmartOTPAutomator:
             return False
 
     def setup_new_browser(self):
-        """Fallback: create new browser instance"""
+        """Fallback: create new browser instance with speed optimizations"""
         try:
             chrome_options = Options()
-            # Anti-detection options
+
+            # Speed optimizations
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-extensions")
+            chrome_options.add_argument("--disable-plugins")
+            chrome_options.add_argument("--disable-images")
+            chrome_options.add_argument(
+                "--disable-javascript"
+            )  # Remove this if OTP page needs JS
+            chrome_options.add_argument("--disable-css")
+            chrome_options.add_argument("--disable-web-security")
+            chrome_options.add_argument("--disable-features=VizDisplayCompositor")
+            chrome_options.add_argument("--disable-background-timer-throttling")
+            chrome_options.add_argument("--disable-backgrounding-occluded-windows")
+            chrome_options.add_argument("--disable-renderer-backgrounding")
+
+            # Anti-detection (minimal for speed)
             chrome_options.add_argument("--disable-blink-features=AutomationControlled")
             chrome_options.add_experimental_option(
                 "excludeSwitches", ["enable-automation"]
             )
-            chrome_options.add_experimental_option("useAutomationExtension", False)
+
+            print("🚀 Starting optimized browser...")
 
             if USE_WEBDRIVER_MANAGER:
                 self.driver = webdriver.Chrome(
@@ -80,11 +100,11 @@ class SmartOTPAutomator:
             else:
                 self.driver = webdriver.Chrome(options=chrome_options)
 
-            # Hide webdriver property
+            # Quick setup
             self.driver.execute_script(
                 "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
             )
-            print("✓ Opened new browser window")
+            print("✓ Browser ready!")
             return True
         except Exception as e:
             print(f"✗ Failed to setup browser: {e}")
@@ -94,7 +114,7 @@ class SmartOTPAutomator:
         """Connect to email server"""
         try:
             self.mail = imaplib.IMAP4_SSL(IMAP_SERVER)
-            self.mail.login(EMAIL_USER, EMAIL_PASS)
+            self.mail.login(self.EMAIL_USER, self.EMAIL_PASS)
             self.mail.select("inbox")
             print("✓ Connected to email")
             return True
@@ -342,27 +362,50 @@ def main():
     print("Smart OTP Automation Tool")
     print("=" * 50)
 
-    # Get user configuration
-    print("Configuration:")
-    email_user = input("Email (Gmail): ").strip() or "your_email@gmail.com"
-    email_pass = input("App Password: ").strip() or "your_app_password"
-    url = input("Website URL (optional, press Enter to use current page): ").strip()
-    sender_filter = input("Email sender filter (optional): ").strip() or None
+    # Quick start option
+    print("⚡ QUICK START OPTIONS:")
+    print("1. Use existing Chrome browser (fastest)")
+    print("2. Open new browser (slower)")
+    choice = input("Choose (1/2): ").strip()
 
-    # Update email config
-    global EMAIL_USER, EMAIL_PASS
-    EMAIL_USER = email_user
-    EMAIL_PASS = email_pass
+    if choice == "1":
+        print("\n🔧 Using existing browser:")
+        print("1. If not already running, start Chrome with:")
+        print("   chromium-browser --remote-debugging-port=9222")
+        print("2. Navigate to your OTP page")
+        print("3. Press Enter when ready...")
+        input()
 
-    print("\n" + "=" * 50)
-    print("🔧 To use with existing browser:")
-    print("1. Start Chrome with: chrome --remote-debugging-port=9222")
-    print("2. Navigate to your OTP page")
-    print("3. Run this script")
-    print("=" * 50)
+        # Minimal config for existing browser
+        email_user = input("Gmail: ").strip() or "your_email@gmail.com"
+        email_pass = input("App Password: ").strip() or "your_app_password"
 
-    automator = SmartOTPAutomator()
-    success = automator.run_automation(sender_filter, url if url else None)
+        # Create automator with email config
+        automator = SmartOTPAutomator()
+        automator.EMAIL_USER = email_user
+        automator.EMAIL_PASS = email_pass
+
+        # Force existing browser connection
+        if automator.connect_to_existing_browser() and automator.connect_to_email():
+            print("🚀 Starting automation on current page...")
+            success = automator.run_automation()
+        else:
+            print("❌ Could not connect to existing browser or email")
+            return
+    else:
+        # Full configuration for new browser
+        print("Configuration for new browser:")
+        email_user = input("Email (Gmail): ").strip() or "your_email@gmail.com"
+        email_pass = input("App Password: ").strip() or "your_app_password"
+        url = input("Website URL: ").strip()
+        sender_filter = input("Email sender filter (optional): ").strip() or None
+
+        # Create automator with email config
+        automator = SmartOTPAutomator()
+        automator.EMAIL_USER = email_user
+        automator.EMAIL_PASS = email_pass
+
+        success = automator.run_automation(sender_filter, url)
 
     if success:
         print("✅ Automation completed!")
