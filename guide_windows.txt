@@ -1,0 +1,47 @@
+📋 OTP Automation Requirements (Windows)
+
+1. System Requirements
+- Windows 10 or higher
+- Python 3.6 or higher (https://www.python.org/downloads/windows/)
+- Internet connection
+
+2. Setup Instructions
+
+Install Python
+- Download and install Python, check "Add Python to PATH"
+
+Create and activate virtual environment
+> python -m venv otp_env
+> .\otp_env\Scripts\activate
+
+Install packages
+> pip install selenium webdriver-manager
+
+3. Browser Setup
+
+- Use Google Chrome (https://www.google.com/chrome/)
+- ChromeDriver handled automatically by webdriver-manager
+
+(Optional) For remote debugging (if script requires):
+> "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
+
+4. Gmail Setup
+
+- Enable 2-Factor Authentication on Gmail
+- Generate App Password for "Mail" app (Google Account → Security → App passwords)
+- Save this 16-character password for the script
+
+5. Required Inputs
+
+- Gmail address (yourname@gmail.com)
+- Gmail App Password
+- OTP automation Python script (otp1.py)
+- Target website URL
+
+6. Running the Script
+
+- Activate virtual environment
+- (Optional) Start Chrome with debugging port (if needed)
+- Run:
+> python otp1.py
+

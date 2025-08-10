@@ -1,0 +1,50 @@
+📋 OTP Automation Requirements (Linux - Ubuntu/Debian)
+
+1. System Requirements
+- Ubuntu/Debian Linux
+- Python 3.6 or higher
+- Internet connection
+
+2. Setup Instructions
+
+Install system packages
+> sudo apt update
+> sudo apt install python3 python3-venv chromium-browser -y
+
+Create and activate virtual environment
+> python3 -m venv otp_env
+> source otp_env/bin/activate
+
+Install Python packages
+> pip install selenium webdriver-manager
+
+3. Browser Setup
+
+- Chromium browser installed via apt
+- ChromeDriver auto-managed by webdriver-manager
+
+(Optional) For remote debugging (if script requires):
+> chromium-browser --remote-debugging-port=9222 &
+
+4. Gmail Setup
+
+- Enable 2-Factor Authentication on Gmail
+- Generate App Password for "Mail" app (Google Account → Security → App passwords)
+- Save this 16-character password for the script
+
+5. Required Inputs
+
+- Gmail address (yourname@gmail.com)
+- Gmail App Password
+- OTP automation Python script (otp1.py)
+- Target website URL
+
+6. Running the Script
+
+- Activate virtual environment
+- (Optional) Start Chromium with debugging port (if needed)
+- Run:
+> python otp1.py
+
+---
+
