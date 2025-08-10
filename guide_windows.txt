@@ -22,11 +22,10 @@ Install packages
 - Use Google Chrome (https://www.google.com/chrome/)
 - ChromeDriver handled automatically by webdriver-manager
 
-(Optional) For remote debugging (if script requires):
+ For remote debugging (if script requires):
 > "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
 
 4. Gmail Setup
-
 - Enable 2-Factor Authentication on Gmail
 - Generate App Password for "Mail" app (Google Account → Security → App passwords)
 - Save this 16-character password for the script
