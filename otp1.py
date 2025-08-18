@@ -63,7 +63,7 @@ class SmartOTPAutomator:
             return False
 
     def setup_new_browser(self):
-        """Fallback: create new browser instance with speed optimizations"""
+        """Create new browser instance with speed optimizations"""
         try:
             chrome_options = Options()
 
@@ -74,9 +74,7 @@ class SmartOTPAutomator:
             chrome_options.add_argument("--disable-extensions")
             chrome_options.add_argument("--disable-plugins")
             chrome_options.add_argument("--disable-images")
-            chrome_options.add_argument(
-                "--disable-javascript"
-            )  # Remove this if OTP page needs JS
+            # chrome_options.add_argument("--disable-javascript")  # Commented out as OTP pages often need JS
             chrome_options.add_argument("--disable-css")
             chrome_options.add_argument("--disable-web-security")
             chrome_options.add_argument("--disable-features=VizDisplayCompositor")
@@ -90,7 +88,7 @@ class SmartOTPAutomator:
                 "excludeSwitches", ["enable-automation"]
             )
 
-            print("🚀 Starting optimized browser...")
+            print("🚀 Starting new browser automatically...")
 
             if USE_WEBDRIVER_MANAGER:
                 self.driver = webdriver.Chrome(
@@ -256,16 +254,15 @@ class SmartOTPAutomator:
         """Main automation flow"""
         print("🚀 Starting Smart OTP Automation...")
 
-        # Try to connect to existing browser first
-        if not self.connect_to_existing_browser():
-            print("📱 Opening new browser...")
-            if not self.setup_new_browser():
-                return False
+        # Automatically open new browser
+        print("📱 Opening new browser automatically...")
+        if not self.setup_new_browser():
+            return False
 
-            # If new browser, navigate to URL if provided
-            if url_to_navigate:
-                print(f"🌐 Navigating to: {url_to_navigate}")
-                self.driver.get(url_to_navigate)
+        # Navigate to URL if provided
+        if url_to_navigate:
+            print(f"🌐 Navigating to: {url_to_navigate}")
+            self.driver.get(url_to_navigate)
 
         # Connect to email
         if not self.connect_to_email():
@@ -359,53 +356,29 @@ class SmartOTPAutomator:
 
 
 def main():
-    print("Smart OTP Automation Tool")
+    print("Smart OTP Automation Tool - Korean Embassy Nepal")
     print("=" * 50)
+    
+    # Automatically open new browser - no user choice needed
+    print("📱 Automatically opening new browser...")
+    
+    # Get configuration
+    print("Configuration:")
+    email_user = input("Email (Gmail): ").strip() or "your_email@gmail.com"
+    email_pass = input("App Password: ").strip() or "your_app_password"
+    
+    # Pre-configured URL for Korean Embassy Nepal
+    url = "https://koreanembassynepal.org/login"
+    print(f"🌐 Target URL: {url}")
+    
+    sender_filter = input("Email sender filter (optional): ").strip() or None
 
-    # Quick start option
-    print("⚡ QUICK START OPTIONS:")
-    print("1. Use existing Chrome browser (fastest)")
-    print("2. Open new browser (slower)")
-    choice = input("Choose (1/2): ").strip()
+    # Create automator with email config
+    automator = SmartOTPAutomator()
+    automator.EMAIL_USER = email_user
+    automator.EMAIL_PASS = email_pass
 
-    if choice == "1":
-        print("\n🔧 Using existing browser:")
-        print("1. If not already running, start Chrome with:")
-        print("   chromium-browser --remote-debugging-port=9222")
-        print("2. Navigate to your OTP page")
-        print("3. Press Enter when ready...")
-        input()
-
-        # Minimal config for existing browser
-        email_user = input("Gmail: ").strip() or "your_email@gmail.com"
-        email_pass = input("App Password: ").strip() or "your_app_password"
-
-        # Create automator with email config
-        automator = SmartOTPAutomator()
-        automator.EMAIL_USER = email_user
-        automator.EMAIL_PASS = email_pass
-
-        # Force existing browser connection
-        if automator.connect_to_existing_browser() and automator.connect_to_email():
-            print("🚀 Starting automation on current page...")
-            success = automator.run_automation()
-        else:
-            print("❌ Could not connect to existing browser or email")
-            return
-    else:
-        # Full configuration for new browser
-        print("Configuration for new browser:")
-        email_user = input("Email (Gmail): ").strip() or "your_email@gmail.com"
-        email_pass = input("App Password: ").strip() or "your_app_password"
-        url = input("Website URL: ").strip()
-        sender_filter = input("Email sender filter (optional): ").strip() or None
-
-        # Create automator with email config
-        automator = SmartOTPAutomator()
-        automator.EMAIL_USER = email_user
-        automator.EMAIL_PASS = email_pass
-
-        success = automator.run_automation(sender_filter, url)
+    success = automator.run_automation(sender_filter, url)
 
     if success:
         print("✅ Automation completed!")
