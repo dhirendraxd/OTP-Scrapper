@@ -21,9 +21,9 @@ try:
 except ImportError:
     USE_WEBDRIVER_MANAGER = False
 
-# Email Configuration
-EMAIL_USER = "your_email@gmail.com"
-EMAIL_PASS = "your_app_password"  # Use App Password for Gmail
+# Email Configuration - UPDATE THESE WITH YOUR ACTUAL CREDENTIALS
+EMAIL_USER = "vibeckh.babu@gmail.com"  # Your actual Gmail
+EMAIL_PASS = "mael yhsy jugh gtxa"     # Your App Password
 IMAP_SERVER = "imap.gmail.com"
 
 # Timing Configuration
@@ -63,32 +63,52 @@ class SmartOTPAutomator:
             return False
 
     def setup_new_browser(self):
-        """Create new browser instance with speed optimizations"""
+        """Create new browser instance with anti-detection settings"""
         try:
             chrome_options = Options()
 
-            # Speed optimizations
+            # Essential stability options
             chrome_options.add_argument("--no-sandbox")
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-gpu-sandbox")
+            chrome_options.add_argument("--disable-software-rasterizer")
+            
+            # Anti-Cloudflare detection measures
+            chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+            chrome_options.add_argument("--disable-web-security")
+            chrome_options.add_argument("--allow-running-insecure-content")
             chrome_options.add_argument("--disable-extensions")
             chrome_options.add_argument("--disable-plugins")
-            chrome_options.add_argument("--disable-images")
-            # chrome_options.add_argument("--disable-javascript")  # Commented out as OTP pages often need JS
-            chrome_options.add_argument("--disable-css")
-            chrome_options.add_argument("--disable-web-security")
-            chrome_options.add_argument("--disable-features=VizDisplayCompositor")
+            chrome_options.add_argument("--disable-default-apps")
             chrome_options.add_argument("--disable-background-timer-throttling")
             chrome_options.add_argument("--disable-backgrounding-occluded-windows")
             chrome_options.add_argument("--disable-renderer-backgrounding")
+            chrome_options.add_argument("--disable-features=TranslateUI,BlinkGenPropertyTrees")
+            chrome_options.add_argument("--disable-ipc-flooding-protection")
+            
+            # Fix GPU/WebGL errors while maintaining compatibility
+            chrome_options.add_argument("--use-gl=swiftshader")
+            chrome_options.add_argument("--enable-unsafe-swiftshader")
+            chrome_options.add_argument("--disable-vulkan")
+            
+            # User agent and window size to appear more human
+            chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            chrome_options.add_argument("--window-size=1920,1080")
+            
+            # Experimental options for better stealth
+            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
+            chrome_options.add_experimental_option('useAutomationExtension', False)
+            
+            # Disable automation indicators
+            prefs = {
+                "profile.default_content_setting_values": {"notifications": 2},
+                "profile.default_content_settings.popups": 0,
+                "profile.managed_default_content_settings.images": 2
+            }
+            chrome_options.add_experimental_option("prefs", prefs)
 
-            # Anti-detection (minimal for speed)
-            chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-            chrome_options.add_experimental_option(
-                "excludeSwitches", ["enable-automation"]
-            )
-
-            print("🚀 Starting new browser automatically...")
+            print("🚀 Starting stealth browser to bypass Cloudflare...")
 
             if USE_WEBDRIVER_MANAGER:
                 self.driver = webdriver.Chrome(
@@ -98,15 +118,86 @@ class SmartOTPAutomator:
             else:
                 self.driver = webdriver.Chrome(options=chrome_options)
 
-            # Quick setup
-            self.driver.execute_script(
-                "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
-            )
-            print("✓ Browser ready!")
+            # Execute stealth scripts to hide automation
+            stealth_scripts = [
+                "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})",
+                "Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]})",
+                "Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']})",
+                "Object.defineProperty(screen, 'colorDepth', {get: () => 24})",
+                "Object.defineProperty(navigator, 'hardwareConcurrency', {get: () => 8})",
+                "window.chrome = { runtime: {} };",
+                "Object.defineProperty(navigator, 'permissions', {get: () => ({query: () => Promise.resolve({state: 'granted'})})})"
+            ]
+            
+            for script in stealth_scripts:
+                try:
+                    self.driver.execute_script(script)
+                except:
+                    pass
+                    
+            print("✓ Browser ready with anti-detection!")
             return True
         except Exception as e:
             print(f"✗ Failed to setup browser: {e}")
             return False
+
+    def handle_cloudflare(self):
+        """Handle Cloudflare protection page"""
+        try:
+            # Wait a bit for the page to load
+            time.sleep(3)
+            
+            # Check if we're on a Cloudflare page
+            if "cloudflare" in self.driver.page_source.lower() or "checking your browser" in self.driver.page_source.lower():
+                print("🛡️ Cloudflare detected! Waiting for automatic bypass...")
+                
+                # Wait for Cloudflare to finish checking (usually 5-10 seconds)
+                max_wait = 30
+                start_time = time.time()
+                
+                while (time.time() - start_time) < max_wait:
+                    time.sleep(2)
+                    
+                    # Check if we've been redirected past Cloudflare
+                    if "cloudflare" not in self.driver.page_source.lower() and "checking your browser" not in self.driver.page_source.lower():
+                        print("✓ Cloudflare bypass successful!")
+                        return True
+                        
+                    # Look for and click the "I'm human" checkbox if present
+                    try:
+                        # Common Cloudflare checkbox selectors
+                        checkbox_selectors = [
+                            "input[type='checkbox']",
+                            ".cf-turnstile",
+                            "#cf-turnstile",
+                            ".challenge-form input",
+                            "iframe[src*='cloudflare']"
+                        ]
+                        
+                        for selector in checkbox_selectors:
+                            try:
+                                element = self.driver.find_element(By.CSS_SELECTOR, selector)
+                                if element.is_displayed():
+                                    print("🤖 Attempting to interact with Cloudflare challenge...")
+                                    self.driver.execute_script("arguments[0].click();", element)
+                                    time.sleep(2)
+                                    break
+                            except:
+                                continue
+                                
+                    except:
+                        pass
+                        
+                    print("⏳ Still waiting for Cloudflare...")
+                
+                print("⚠️ Cloudflare taking longer than expected...")
+                return False
+            
+            return True
+            
+        except Exception as e:
+            print(f"✗ Error handling Cloudflare: {e}")
+            return True  # Continue anyway
 
     def connect_to_email(self):
         """Connect to email server"""
@@ -263,6 +354,11 @@ class SmartOTPAutomator:
         if url_to_navigate:
             print(f"🌐 Navigating to: {url_to_navigate}")
             self.driver.get(url_to_navigate)
+            
+            # Handle Cloudflare if present
+            if not self.handle_cloudflare():
+                print("⚠️ Cloudflare protection may still be active. You might need to complete it manually.")
+                input("Press Enter after completing Cloudflare challenge...")
 
         # Connect to email
         if not self.connect_to_email():
@@ -362,21 +458,21 @@ def main():
     # Automatically open new browser - no user choice needed
     print("📱 Automatically opening new browser...")
     
-    # Get configuration
-    print("Configuration:")
-    email_user = input("Email (Gmail): ").strip() or "your_email@gmail.com"
-    email_pass = input("App Password: ").strip() or "your_app_password"
+    # Use pre-configured email credentials (no manual input needed)
+    print(f"📧 Using email: {EMAIL_USER}")
+    print("🔑 Using saved App Password")
     
     # Pre-configured URL for Korean Embassy Nepal
     url = "https://koreanembassynepal.org/login"
     print(f"🌐 Target URL: {url}")
     
-    sender_filter = input("Email sender filter (optional): ").strip() or None
+    # Optional: Ask for sender filter only if needed
+    sender_filter = None  # Set to None for automatic detection, or specify like "noreply@koreanembassynepal.org"
 
-    # Create automator with email config
+    # Create automator with pre-configured email settings
     automator = SmartOTPAutomator()
-    automator.EMAIL_USER = email_user
-    automator.EMAIL_PASS = email_pass
+    automator.EMAIL_USER = EMAIL_USER
+    automator.EMAIL_PASS = EMAIL_PASS
 
     success = automator.run_automation(sender_filter, url)
 
@@ -388,3 +484,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    #  bypassing cloudflare  captcha
+    automator.bypass_cloudflare_captcha() 
+    
