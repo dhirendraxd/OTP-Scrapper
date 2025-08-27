@@ -485,6 +485,5 @@ def main():
 if __name__ == "__main__":
     main()
 
-    #  bypassing cloudflare  captcha
-    automator.bypass_cloudflare_captcha() 
-    
+    #  bypassing cloudflare  captcha from the below code : 
+ 
